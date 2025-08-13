@@ -1,201 +1,421 @@
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
+import React, { useMemo, useState } from "react";
 
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+function SectionButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={`px-3 py-2 rounded-2xl text-sm ${active ? "bg-black text-white" : "bg-zinc-200 text-zinc-800"}`}>{label}</button>
+  );
+}
 
-   1. Definitions.
+function CodeView({ content }: { content: string }) {
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(content); } catch {}
+  };
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-zinc-500">copiar</span>
+        <button onClick={copy} className="px-2 py-1 rounded-lg bg-zinc-800 text-white text-xs">Copiar</button>
+      </div>
+      <pre className="w-full overflow-auto rounded-xl bg-zinc-900 text-zinc-100 p-4 text-[12.5px] leading-5">
+        <code>{content}</code>
+      </pre>
+    </div>
+  );
+}
 
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
+export default function MemoriaEternaStarter() {
+  const files = useMemo(() => ({
+    "README": `Memória Eterna — Starter Project v1.2\n\nBase pronta para Expo (React Native + TypeScript) com Login demo, Home, Criar Memória com upload para Firebase Storage, tema escuro, navegação e esqueleto de backend.\n\nComo rodar\ncd frontend\nnpm install\nnpx expo start\n\nComo subir no GitHub\ngit init\ngit add .\ngit commit -m "feat: Memória Eterna v1.2"\ngit branch -M main\ngit remote add origin https://github.com/SEU-USUARIO/memoria-eterna.git\ngit push -u origin main`,
 
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
+    "frontend/package.json": `{
+  "name": "memoria-eterna-frontend",
+  "private": true,
+  "version": "1.2.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "*",
+    "expo-image-picker": "*",
+    "expo-status-bar": "*",
+    "firebase": "^10.12.0",
+    "react": "18.2.0",
+    "react-native": "*",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native-stack": "^6.9.20"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.73.0",
+    "typescript": "^5.4.0"
+  }
+}`,
 
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
+    "frontend/tsconfig.json": `{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "esnext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "moduleResolution": "node",
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/src/*": ["src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}`,
 
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
+    "frontend/app.json": `{
+  "expo": {
+    "name": "Memoria Eterna",
+    "slug": "memoria-eterna",
+    "scheme": "memoriaeterna",
+    "owner": "",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#0f0f10" },
+    "updates": { "enabled": true },
+    "runtimeVersion": { "policy": "appVersion" },
+    "android": { "package": "com.seuusuario.memoriaeterna" },
+    "ios": { "bundleIdentifier": "com.seuusuario.memoriaeterna" }
+  }
+}`,
 
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
+    "frontend/.env.example": `EXPO_PUBLIC_FIREBASE_API_KEY=xxxxx\nEXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxxx.firebaseapp.com\nEXPO_PUBLIC_FIREBASE_PROJECT_ID=xxxxx\nEXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=xxxxx.appspot.com\nEXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxxxx\nEXPO_PUBLIC_FIREBASE_APP_ID=1:xxxxx:web:xxxxx`,
 
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
+    "frontend/App.tsx": `import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/navigation/AppNavigator';
+import { StatusBar } from 'expo-status-bar';
+export default function App(){
+  return (
+    <NavigationContainer>
+      <StatusBar style="light" />
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}`,
 
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
+    "frontend/src/theme/colors.ts": `export const colors = { bg: '#0f0f10', card: '#17171a', primary: '#6b46ff', text: '#ffffff', subtext: '#b4b4b8', border: '#2a2a2e' };`,
 
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
+    "frontend/src/navigation/AppNavigator.tsx": `import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import LoginScreen from '@/src/screens/LoginScreen';
+import HomeScreen from '@/src/screens/HomeScreen';
+import CreateMemoryScreen from '@/src/screens/CreateMemoryScreen';
+export type RootStackParamList = { Login: undefined; Home: undefined; CreateMemory: undefined };
+const Stack = createNativeStackNavigator<RootStackParamList>();
+export default function AppNavigator(){
+  return (
+    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="CreateMemory" component={CreateMemoryScreen} />
+    </Stack.Navigator>
+  );
+}`,
 
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
+    "frontend/src/services/firebase.ts": `import { initializeApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
+const firebaseConfig = { apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY, authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN, projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID, storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET, messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID };
+const app = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const storage = getStorage(app);`,
 
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
+    "frontend/src/services/storage.ts": `import { storage } from './firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+export async function uploadFileAsync(uri: string, path: string): Promise<string> {
+  const resp = await fetch(uri);
+  const blob = await resp.blob();
+  const storageRef = ref(storage, path);
+  const task = uploadBytesResumable(storageRef, blob);
+  await new Promise<void>((resolve, reject)=>{ task.on('state_changed', ()=>{}, reject, ()=> resolve()); });
+  return await getDownloadURL(task.snapshot.ref);
+}`,
 
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
+    "frontend/src/components/MemoryCard.tsx": `import React from 'react';
+import { Text, Image, TouchableOpacity } from 'react-native';
+import { colors } from '@/src/theme/colors';
+interface Props { title: string; preview?: string; onPress?: () => void }
+export default function MemoryCard({ title, preview, onPress }: Props){
+  return (
+    <TouchableOpacity onPress={onPress} style={{backgroundColor: colors.card, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.border, gap: 10}}>
+      {preview ? (<Image source={{ uri: preview }} style={{width: '100%', height: 160, borderRadius: 10}} />) : null}
+      <Text style={{color: colors.text, fontSize: 16, fontWeight: '600'}}>{title}</Text>
+      <Text style={{color: colors.subtext}}>Toque para abrir</Text>
+    </TouchableOpacity>
+  );
+}`,
 
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
+    "frontend/src/screens/LoginScreen.tsx": `import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { colors } from '@/src/theme/colors';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/src/navigation/AppNavigator';
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
+export default function LoginScreen({ navigation }: Props){
+  return (
+    <View style={{flex:1, backgroundColor: colors.bg, padding: 24, justifyContent:'center', alignItems:'center'}}>
+      <Text style={{color: colors.text, fontSize: 30, fontWeight: '700', marginBottom: 24}}>Memória Eterna</Text>
+      <Text style={{color: colors.subtext, textAlign:'center', marginBottom: 16}}>Guarde suas lembranças com segurança e carinho. Reviva quando quiser.</Text>
+      <TouchableOpacity onPress={()=> navigation.replace('Home')} style={{backgroundColor: colors.primary, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 14}}>
+        <Text style={{color: colors.text, fontWeight: '700'}}>Entrar (demo)</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}`,
 
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
+    "frontend/src/screens/HomeScreen.tsx": `import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { colors } from '@/src/theme/colors';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/src/navigation/AppNavigator';
+import MemoryCard from '@/src/components/MemoryCard';
+const DEMO = [ { id: '1', title: 'Aniversário 2023', preview: undefined }, { id: '2', title: 'Viagem com a família', preview: undefined } ];
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+export default function HomeScreen({ navigation }: Props){
+  const [items] = useState(DEMO);
+  return (
+    <View style={{flex:1, backgroundColor: colors.bg}}>
+      <View style={{padding: 20, paddingTop: 52}}>
+        <Text style={{color: colors.text, fontSize: 24, fontWeight: '700'}}>Seu feed emocional</Text>
+        <Text style={{color: colors.subtext, marginTop: 6}}>Sugestões e últimas memórias</Text>
+      </View>
+      <ScrollView style={{flex:1}} contentContainerStyle={{gap: 12, paddingHorizontal: 20}}>
+        {items.map(m => (<MemoryCard key={m.id} title={m.title} preview={m.preview} onPress={()=>{}} />))}
+      </ScrollView>
+      <View style={{padding: 20}}>
+        <TouchableOpacity onPress={()=> navigation.navigate('CreateMemory')} style={{backgroundColor: colors.primary, padding: 14, borderRadius: 14, alignItems:'center'}}>
+          <Text style={{color: colors.text, fontWeight: '700'}}>Criar Memória</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}`,
 
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
+    "frontend/src/screens/CreateMemoryScreen.tsx": `import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { colors } from '@/src/theme/colors';
+import { uploadFileAsync } from '@/src/services/storage';
+export default function CreateMemoryScreen(){
+  const [title, setTitle] = useState('');
+  const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  async function pickMedia(){
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if(!perm.granted){ Alert.alert('Permissão negada', 'Precisamos de acesso à galeria'); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, allowsEditing: false, quality: 0.8 });
+    if(!res.canceled && res.assets?.length){ setMediaUri(res.assets[0].uri); }
+  }
+  async function handleSave(){
+    try{
+      if(!title){ Alert.alert('Título obrigatório','Dê um nome para sua memória.'); return; }
+      setUploading(true);
+      let downloadUrl: string | undefined = undefined;
+      if(mediaUri){
+        const filename = `memorias/${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        downloadUrl = await uploadFileAsync(mediaUri, filename);
+      }
+      Alert.alert('Memória salva', downloadUrl ? 'Upload concluído com sucesso!' : 'Memória de texto criada.');
+      setTitle('');
+      setMediaUri(null);
+    } catch(e: any){
+      Alert.alert('Erro ao salvar', e?.message || 'Tente novamente.');
+    } finally { setUploading(false); }
+  }
+  return (
+    <View style={{flex:1, backgroundColor: colors.bg, padding: 20, paddingTop: 52, gap: 12}}>
+      <Text style={{color: colors.text, fontSize: 22, fontWeight: '700'}}>Criar Memória</Text>
+      <TextInput placeholder="Título da memória" placeholderTextColor={colors.subtext} value={title} onChangeText={setTitle} style={{backgroundColor: colors.card, color: colors.text, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border}} />
+      <TouchableOpacity onPress={pickMedia} style={{backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, padding: 12, borderRadius: 12}}>
+        <Text style={{color: colors.text}}>{mediaUri ? 'Mídia selecionada ✅ (toque para trocar)' : 'Selecionar foto/vídeo'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity disabled={uploading} onPress={handleSave} style={{backgroundColor: colors.primary, padding: 14, borderRadius: 14, alignItems:'center', opacity: uploading ? 0.6 : 1}}>
+        <Text style={{color: colors.text, fontWeight: '700'}}>{uploading ? 'Enviando...' : 'Salvar memória'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}`,
 
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
+    "backend/package.json": `{
+  "name": "memoria-eterna-backend",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": { "dev": "ts-node-dev --respawn src/index.ts", "start": "node dist/index.js", "build": "tsc -p ." },
+  "dependencies": { "cors": "^2.8.5", "dotenv": "^16.3.1", "express": "^4.19.2", "mongoose": "^8.3.0" },
+  "devDependencies": { "@types/express": "^4.17.21", "ts-node-dev": "^2.0.0", "typescript": "^5.4.0" }
+}`,
 
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
+    "backend/tsconfig.json": `{
+  "compilerOptions": { "target": "es2019", "module": "commonjs", "outDir": "dist", "rootDir": "src", "strict": true, "esModuleInterop": true }
+}`,
 
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
+    "backend/.env.example": `MONGO_URI=mongodb+srv://user:pass@cluster0.mongodb.net/memoria\nPORT=4000`,
 
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
+    "backend/src/index.ts": `import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import health from './routes/health';
+import memory from './routes/memory';
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use('/api/health', health);
+app.use('/api/memory', memory);
+const PORT = process.env.PORT || 4000;
+async function bootstrap(){
+  const uri = process.env.MONGO_URI as string;
+  if(!uri) throw new Error('MONGO_URI not set');
+  await mongoose.connect(uri);
+  app.listen(PORT, ()=> {});
+}
+bootstrap().catch(()=>{ process.exit(1); });`,
 
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
+    "backend/src/models/Memory.ts": `import { Schema, model } from 'mongoose';
+const MemorySchema = new Schema({ owner: { type: String, required: true }, title: String, mediaUrl: String, tags: [String], audience: { type: String, enum: ['private','family','friends'], default: 'private' }, legacyReleaseAt: { type: Date }, createdAt: { type: Date, default: Date.now } });
+export default model('Memory', MemorySchema);`,
 
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
+    "backend/src/routes/health.ts": `import { Router } from 'express';
+const router = Router();
+router.get('/', (_req, res)=> res.json({ ok: true }));
+export default router;`,
 
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
+    "backend/src/routes/memory.ts": `import { Router } from 'express';
+import Memory from '../models/Memory';
+const router = Router();
+router.post('/', async (req, res)=>{ try{ const mem = await Memory.create(req.body); res.json(mem); }catch(e: any){ res.status(500).json({ error: e?.message || 'Erro' }); } });
+router.get('/user/:owner', async (req, res)=>{ try{ const list = await Memory.find({ owner: req.params.owner }); res.json(list); }catch(e: any){ res.status(500).json({ error: e?.message || 'Erro' }); } });
+export default router;`
+  }), []);
 
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
+  const [section, setSection] = useState<"overview" | "frontend" | "backend" | "tests">("overview");
+  const [fileKey, setFileKey] = useState<string>("README");
 
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
+  const frontendKeys = Object.keys(files).filter(k => k.startsWith("frontend/"));
+  const backendKeys = Object.keys(files).filter(k => k.startsWith("backend/"));
 
-   END OF TERMS AND CONDITIONS
+  const tests = useMemo(() => [
+    {
+      name: "frontend/package.json válido",
+      run: () => { const j = JSON.parse(files["frontend/package.json"]); return j.name === "memoria-eterna-frontend" && typeof j.dependencies === "object"; }
+    },
+    {
+      name: "frontend/tsconfig.json válido",
+      run: () => { const j = JSON.parse(files["frontend/tsconfig.json"]); return j.compilerOptions?.jsx === "react-jsx"; }
+    },
+    {
+      name: "frontend/app.json válido",
+      run: () => { const j = JSON.parse(files["frontend/app.json"]); return j.expo?.name === "Memoria Eterna"; }
+    },
+    {
+      name: "backend/package.json válido",
+      run: () => { const j = JSON.parse(files["backend/package.json"]); return j.scripts?.build === "tsc -p ."; }
+    },
+    {
+      name: "Arquivos essenciais presentes",
+      run: () => ["frontend/App.tsx","frontend/src/navigation/AppNavigator.tsx","frontend/src/screens/LoginScreen.tsx","frontend/src/screens/HomeScreen.tsx","frontend/src/screens/CreateMemoryScreen.tsx"].every(k=>k in files)
+    }
+  ], [files]);
 
-   APPENDIX: How to apply the Apache License to your work.
+  const results = tests.map(t => ({ name: t.name, ok: (()=>{ try { return !!t.run(); } catch { return false; } })() }));
 
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-zinc-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold">Memória Eterna — Starter Project</h1>
+          <div className="flex gap-2">
+            <SectionButton label="Visão" active={section==="overview"} onClick={()=> setSection("overview")} />
+            <SectionButton label="Frontend" active={section==="frontend"} onClick={()=> { setSection("frontend"); setFileKey(frontendKeys[0]||"README"); }} />
+            <SectionButton label="Backend" active={section==="backend"} onClick={()=> { setSection("backend"); setFileKey(backendKeys[0]||"README"); }} />
+            <SectionButton label="Testes" active={section==="tests"} onClick={()=> setSection("tests")} />
+          </div>
+        </div>
 
-   Copyright [yyyy] [name of copyright owner]
+        {section === "overview" && (
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl border p-5">
+              <h2 className="text-lg font-medium mb-3">Instruções</h2>
+              <CodeView content={files["README"]} />
+            </div>
+            <div className="bg-white rounded-2xl border p-5">
+              <h2 className="text-lg font-medium mb-3">Estrutura</h2>
+              <pre className="bg-zinc-900 text-zinc-100 rounded-xl p-4 text-[12.5px] leading-5 overflow-auto">{`memoria-eterna/
+├─ frontend/
+│  ├─ package.json
+│  ├─ tsconfig.json
+│  ├─ app.json
+│  ├─ .env.example
+│  ├─ App.tsx
+│  └─ src/
+│     ├─ navigation/AppNavigator.tsx
+│     ├─ screens/
+│     │  ├─ LoginScreen.tsx
+│     │  ├─ HomeScreen.tsx
+│     │  └─ CreateMemoryScreen.tsx
+│     ├─ components/MemoryCard.tsx
+│     ├─ services/
+│     │  ├─ firebase.ts
+│     │  └─ storage.ts
+│     └─ theme/colors.ts
+└─ backend/
+   ├─ package.json
+   ├─ tsconfig.json
+   ├─ src/
+   │  ├─ index.ts
+   │  ├─ routes/
+   │  │  ├─ memory.ts
+   │  │  └─ health.ts
+   │  └─ models/
+   │     └─ Memory.ts
+   └─ .env.example`}</pre>
+            </div>
+          </div>
+        )}
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+        {section === "frontend" && (
+          <div className="bg-white rounded-2xl border p-5">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {frontendKeys.map(k => (
+                <button key={k} onClick={()=> setFileKey(k)} className={`px-3 py-1 rounded-xl text-xs ${fileKey===k?"bg-zinc-900 text-white":"bg-zinc-200 text-zinc-800"}`}>{k.replace("frontend/", "")}</button>
+              ))}
+            </div>
+            <CodeView content={files[fileKey] || ""} />
+          </div>
+        )}
 
-       http://www.apache.org/licenses/LICENSE-2.0
+        {section === "backend" && (
+          <div className="bg-white rounded-2xl border p-5">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {backendKeys.map(k => (
+                <button key={k} onClick={()=> setFileKey(k)} className={`px-3 py-1 rounded-xl text-xs ${fileKey===k?"bg-zinc-900 text-white":"bg-zinc-200 text-zinc-800"}`}>{k.replace("backend/", "")}</button>
+              ))}
+            </div>
+            <CodeView content={files[fileKey] || ""} />
+          </div>
+        )}
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+        {section === "tests" && (
+          <div className="bg-white rounded-2xl border p-5">
+            <h2 className="text-lg font-medium mb-3">Testes</h2>
+            <ul className="space-y-2">
+              {results.map(r => (
+                <li key={r.name} className={`px-3 py-2 rounded-xl text-sm ${r.ok?"bg-green-100 text-green-800":"bg-red-100 text-red-800"}`}>{r.ok?"OK":"FALHA"} — {r.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
